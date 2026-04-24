@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediClaims Portal — Healthcare Claims Management System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f4;color:#1a1a1a}
+.portal{width:100%;min-height:100vh;background:#f5f5f4}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e2;padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:#185FA5;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;fill:white}
+.logo-text{font-size:15px;font-weight:500;color:#1a1a1a}
+.logo-sub{font-size:11px;color:#888}
+.user-pill{display:flex;align-items:center;gap:8px;font-size:13px;color:#888}
+.avatar{width:28px;height:28px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#185FA5}
+.layout{display:grid;grid-template-columns:180px 1fr;min-height:calc(100vh - 57px)}
+.sidebar{background:#fff;border-right:1px solid #e5e5e2;padding:16px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;color:#888;cursor:pointer;border-left:2px solid transparent;transition:all 0.15s}
+.nav-item.active{color:#185FA5;background:#E6F1FB;border-left-color:#185FA5}
+.nav-item:hover:not(.active){background:#f5f5f4}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.6}
+.nav-section{font-size:10px;color:#bbb;padding:16px 16px 6px;text-transform:uppercase;letter-spacing:0.05em}
+.main{padding:20px;overflow:auto}
+.page{display:none}.page.active{display:block}
+.page-title{font-size:16px;font-weight:500;color:#1a1a1a;margin-bottom:4px}
+.page-sub{font-size:13px;color:#888;margin-bottom:16px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:#f0f0ec;border-radius:8px;padding:12px 14px}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:500;color:#1a1a1a}
+.stat-delta{font-size:11px;margin-top:2px}
+.delta-up{color:#3B6D11}.delta-down{color:#A32D2D}
+.card{background:#fff;border:1px solid #e5e5e2;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:500;color:#1a1a1a}
+.badge{font-size:11px;padding:3px 8px;border-radius:100px;font-weight:500}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-gray{background:#F1EFE8;color:#5F5E5A}
+.claims-table{width:100%;border-collapse:collapse;font-size:12px}
+.claims-table th{text-align:left;color:#888;font-weight:500;padding:6px 8px;border-bottom:1px solid #e5e5e2}
+.claims-table td{padding:8px 8px;border-bottom:1px solid #e5e5e2;color:#1a1a1a;vertical-align:middle}
+.claims-table tr:last-child td{border-bottom:none}
+.claims-table tr:hover td{background:#f5f5f4}
+.prog-bar{height:5px;border-radius:100px;background:#e5e5e2;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:100px;transition:width 0.4s}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{display:flex;flex-direction:column;gap:6px;flex:1}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#888}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.action-btn{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #d0d0cc;background:#fff;color:#1a1a1a;cursor:pointer}
+.action-btn:hover{background:#f5f5f4}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.filter-row select,.filter-row input{font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid #d0d0cc;background:#fff;color:#1a1a1a;outline:none}
+.status-track{display:flex;align-items:center;gap:0;margin:8px 0}
+.track-step{flex:1;text-align:center;position:relative}
+.track-step::before{content:'';position:absolute;top:10px;left:50%;width:100%;height:1.5px;background:#e5e5e2;z-index:0}
+.track-step:last-child::before{display:none}
+.step-circle{width:20px;height:20px;border-radius:50%;border:1.5px solid #e5e5e2;background:#fff;display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:1;font-size:10px}
+.step-circle.done{background:#185FA5;border-color:#185FA5;color:white}
+.step-circle.active{background:#E6F1FB;border-color:#185FA5;color:#185FA5}
+.step-label{font-size:10px;color:#bbb;margin-top:3px}
+.patient-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #e5e5e2}
+.patient-row:last-child{border-bottom:none}
+.pat-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.pat-name{font-size:13px;color:#1a1a1a;font-weight:500}
+.pat-detail{font-size:11px;color:#888}
+</style>
+</head>
+<body>
+<div class="portal">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">MediClaims Portal</div>
+        <div class="logo-sub">Healthcare Claims Management System</div>
+      </div>
+    </div>
+    <div class="user-pill">
+      <div class="avatar">SK</div>
+      Sekhar K &nbsp;|&nbsp; Claims Analyst
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="switchPage('dashboard',this)"><div class="nav-dot"></div>Dashboard</div>
+      <div class="nav-item" onclick="switchPage('claims',this)"><div class="nav-dot"></div>Claims Tracker</div>
+      <div class="nav-section">Management</div>
+      <div class="nav-item" onclick="switchPage('patients',this)"><div class="nav-dot"></div>Patients</div>
+      <div class="nav-item" onclick="switchPage('analytics',this)"><div class="nav-dot"></div>Analytics</div>
+      <div class="nav-section">System</div>
+      <div class="nav-item" onclick="switchPage('settings',this)"><div class="nav-dot"></div>Settings</div>
+    </div>
+
+    <div class="main">
+
+      <!-- Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Claims overview — April 2026</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Total claims</div><div class="stat-val">2,847</div><div class="stat-delta delta-up">+12% this month</div></div>
+          <div class="stat"><div class="stat-label">Approved</div><div class="stat-val">1,934</div><div class="stat-delta delta-up">68% approval rate</div></div>
+          <div class="stat"><div class="stat-label">Pending review</div><div class="stat-val">612</div><div class="stat-delta delta-down">Avg 3.2 days</div></div>
+          <div class="stat"><div class="stat-label">Amount processed</div><div class="stat-val">₹4.2Cr</div><div class="stat-delta delta-up">+8% vs last month</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-head"><div class="card-title">Claims by status</div></div>
+            <div class="donut-wrap">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#E6F1FB" stroke-width="14"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#185FA5" stroke-width="14" stroke-dasharray="150 70" stroke-dashoffset="0" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#639922" stroke-width="14" stroke-dasharray="75 145" stroke-dashoffset="-150" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#BA7517" stroke-width="14" stroke-dasharray="38 182" stroke-dashoffset="-225"/>
+                <text x="45" y="49" text-anchor="middle" font-size="13" font-weight="500" fill="#1a1a1a">2,847</text>
+              </svg>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>Approved — 68%</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#639922"></div>Pending — 21%</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div>Rejected — 11%</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">Processing pipeline</div></div>
+            <div style="font-size:12px;color:#888;margin-bottom:10px">Current month activity</div>
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Submitted</span><span style="font-weight:500">2,847</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:100%;background:#185FA5"></div></div>
+            </div>
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Under review</span><span style="font-weight:500">612</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:22%;background:#BA7517"></div></div>
+            </div>
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Approved</span><span style="font-weight:500">1,934</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:68%;background:#639922"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Rejected</span><span style="font-weight:500">301</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:11%;background:#E24B4A"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Recent claim activity</div><button class="action-btn" onclick="switchPage('claims',document.querySelectorAll('.nav-item')[1])">View all claims</button></div>
+          <table class="claims-table">
+            <thead><tr><th>Claim ID</th><th>Patient</th><th>Type</th><th>Amount</th><th>Submitted</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:monospace;font-size:11px">CLM-2024-0891</td><td>Ramesh V.</td><td>Hospitalization</td><td>₹84,500</td><td>22 Apr</td><td><span class="badge badge-green">Approved</span></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">CLM-2024-0890</td><td>Lakshmi P.</td><td>Surgery</td><td>₹2,10,000</td><td>21 Apr</td><td><span class="badge badge-amber">Under review</span></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">CLM-2024-0889</td><td>Venkat R.</td><td>Diagnostics</td><td>₹12,800</td><td>20 Apr</td><td><span class="badge badge-green">Approved</span></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">CLM-2024-0888</td><td>Sunita M.</td><td>OPD</td><td>₹6,200</td><td>19 Apr</td><td><span class="badge badge-red">Rejected</span></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">CLM-2024-0887</td><td>Arun K.</td><td>Pharmacy</td><td>₹3,450</td><td>18 Apr</td><td><span class="badge badge-blue">Submitted</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Claims Tracker -->
+      <div class="page" id="page-claims">
+        <div class="page-title">Claims tracker</div>
+        <div class="page-sub">Search, filter, and track all claims in real time</div>
+        <div class="filter-row">
+          <input type="text" placeholder="Search by patient or claim ID..." style="width:220px" id="search-input" oninput="filterClaims()"/>
+          <select id="status-filter" onchange="filterClaims()">
+            <option value="">All statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="Under review">Under review</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Submitted">Submitted</option>
+          </select>
+          <select id="type-filter" onchange="filterClaims()">
+            <option value="">All types</option>
+            <option value="Hospitalization">Hospitalization</option>
+            <option value="Surgery">Surgery</option>
+            <option value="OPD">OPD</option>
+            <option value="Diagnostics">Diagnostics</option>
+            <option value="Pharmacy">Pharmacy</option>
+          </select>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="claims-table">
+            <thead><tr style="background:#f5f5f4"><th style="padding:10px 12px">Claim ID</th><th>Patient</th><th>Type</th><th>Hospital</th><th>Amount</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="claims-body"></tbody>
+          </table>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><div class="card-title">Claim status tracker — CLM-2024-0890</div><span class="badge badge-amber">Under review</span></div>
+          <div class="status-track">
+            <div class="track-step"><div class="step-circle done">✓</div><div class="step-label">Submitted</div></div>
+            <div class="track-step"><div class="step-circle done">✓</div><div class="step-label">Received</div></div>
+            <div class="track-step"><div class="step-circle active">→</div><div class="step-label">Review</div></div>
+            <div class="track-step"><div class="step-circle">○</div><div class="step-label">Approved</div></div>
+            <div class="track-step"><div class="step-circle">○</div><div class="step-label">Settled</div></div>
+          </div>
+          <div style="font-size:12px;color:#888;margin-top:10px">Patient: Lakshmi P. &nbsp;|&nbsp; Surgery — Apollo Hospital Hyderabad &nbsp;|&nbsp; ₹2,10,000 &nbsp;|&nbsp; Submitted 21 Apr 2026</div>
+        </div>
+      </div>
+
+      <!-- Patients -->
+      <div class="page" id="page-patients">
+        <div class="page-title">Patient directory</div>
+        <div class="page-sub">Registered patients and their claim history</div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Active patients</div><button class="action-btn">+ Add patient</button></div>
+          <div>
+            <div class="patient-row"><div class="pat-avatar" style="background:#E6F1FB;color:#185FA5">RV</div><div style="flex:1"><div class="pat-name">Ramesh Varma</div><div class="pat-detail">Policy HC-44821 · 3 claims · Last: 22 Apr</div></div><span class="badge badge-green">Active</span></div>
+            <div class="patient-row"><div class="pat-avatar" style="background:#FAEEDA;color:#854F0B">LP</div><div style="flex:1"><div class="pat-name">Lakshmi Prasad</div><div class="pat-detail">Policy HC-38210 · 7 claims · Last: 21 Apr</div></div><span class="badge badge-amber">Review</span></div>
+            <div class="patient-row"><div class="pat-avatar" style="background:#EAF3DE;color:#3B6D11">VR</div><div style="flex:1"><div class="pat-name">Venkat Rao</div><div class="pat-detail">Policy HC-51033 · 2 claims · Last: 20 Apr</div></div><span class="badge badge-green">Active</span></div>
+            <div class="patient-row"><div class="pat-avatar" style="background:#FCEBEB;color:#A32D2D">SM</div><div style="flex:1"><div class="pat-name">Sunita Mehta</div><div class="pat-detail">Policy HC-29910 · 5 claims · Last: 19 Apr</div></div><span class="badge badge-red">Disputed</span></div>
+            <div class="patient-row"><div class="pat-avatar" style="background:#EEEDFE;color:#534AB7">AK</div><div style="flex:1"><div class="pat-name">Arun Kumar</div><div class="pat-detail">Policy HC-60124 · 1 claim · Last: 18 Apr</div></div><span class="badge badge-gray">Pending</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="page" id="page-analytics">
+        <div class="page-title">Analytics</div>
+        <div class="page-sub">Claims trends and performance metrics</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Avg processing time</div><div class="stat-val">3.2d</div><div class="stat-delta delta-up">↓ 0.4d faster</div></div>
+          <div class="stat"><div class="stat-label">Approval rate</div><div class="stat-val">68%</div><div class="stat-delta delta-up">↑ 3% vs last month</div></div>
+          <div class="stat"><div class="stat-label">Avg claim value</div><div class="stat-val">₹14.7K</div><div class="stat-delta delta-down">↑ 7% vs last month</div></div>
+          <div class="stat"><div class="stat-label">Disputes raised</div><div class="stat-val">47</div><div class="stat-delta delta-up">↓ 12 vs last month</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-head"><div class="card-title">Claims by type</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Hospitalization</span><span style="font-weight:500">38%</span></div><div class="prog-bar"><div class="prog-fill" style="width:38%;background:#185FA5"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Surgery</span><span style="font-weight:500">24%</span></div><div class="prog-bar"><div class="prog-fill" style="width:24%;background:#534AB7"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">OPD</span><span style="font-weight:500">19%</span></div><div class="prog-bar"><div class="prog-fill" style="width:19%;background:#639922"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Diagnostics</span><span style="font-weight:500">12%</span></div><div class="prog-bar"><div class="prog-fill" style="width:12%;background:#BA7517"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#888">Pharmacy</span><span style="font-weight:500">7%</span></div><div class="prog-bar"><div class="prog-fill" style="width:7%;background:#993C1D"></div></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">Monthly trend (claims count)</div></div>
+            <svg width="100%" height="120" viewBox="0 0 280 120">
+              <polyline points="10,90 55,75 100,80 145,55 190,45 235,30 270,20" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#185FA5"/><stop offset="100%" stop-color="#185FA5" stop-opacity="0"/></linearGradient></defs>
+              <circle cx="10" cy="90" r="3" fill="#185FA5"/><circle cx="55" cy="75" r="3" fill="#185FA5"/><circle cx="100" cy="80" r="3" fill="#185FA5"/><circle cx="145" cy="55" r="3" fill="#185FA5"/><circle cx="190" cy="45" r="3" fill="#185FA5"/><circle cx="235" cy="30" r="3" fill="#185FA5"/><circle cx="270" cy="20" r="3" fill="#185FA5"/>
+              <text x="10" y="112" font-size="9" fill="#bbb" text-anchor="middle">Nov</text>
+              <text x="55" y="112" font-size="9" fill="#bbb" text-anchor="middle">Dec</text>
+              <text x="100" y="112" font-size="9" fill="#bbb" text-anchor="middle">Jan</text>
+              <text x="145" y="112" font-size="9" fill="#bbb" text-anchor="middle">Feb</text>
+              <text x="190" y="112" font-size="9" fill="#bbb" text-anchor="middle">Mar</text>
+              <text x="235" y="112" font-size="9" fill="#bbb" text-anchor="middle">Apr</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="page" id="page-settings">
+        <div class="page-title">Settings</div>
+        <div class="page-sub">Manage portal preferences and user access</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">User profile</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+            <div><div style="color:#888;margin-bottom:4px">Name</div><div>Sekhar Kumar</div></div>
+            <div><div style="color:#888;margin-bottom:4px">Role</div><div>Claims Analyst</div></div>
+            <div><div style="color:#888;margin-bottom:4px">Department</div><div>HC-IOA</div></div>
+            <div><div style="color:#888;margin-bottom:4px">Location</div><div>Hyderabad</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Notification preferences</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span>Claims status updates</span><span class="badge badge-green">Enabled</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span>Rejection alerts</span><span class="badge badge-green">Enabled</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span>Weekly summary report</span><span class="badge badge-gray">Disabled</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const allClaims=[
+  {id:'CLM-2024-0891',patient:'Ramesh V.',type:'Hospitalization',hospital:'Care Hospital',amount:'₹84,500',date:'22 Apr',status:'Approved'},
+  {id:'CLM-2024-0890',patient:'Lakshmi P.',type:'Surgery',hospital:'Apollo Hospital',amount:'₹2,10,000',date:'21 Apr',status:'Under review'},
+  {id:'CLM-2024-0889',patient:'Venkat R.',type:'Diagnostics',hospital:'Yashoda Hospital',amount:'₹12,800',date:'20 Apr',status:'Approved'},
+  {id:'CLM-2024-0888',patient:'Sunita M.',type:'OPD',hospital:'Kims Hospital',amount:'₹6,200',date:'19 Apr',status:'Rejected'},
+  {id:'CLM-2024-0887',patient:'Arun K.',type:'Pharmacy',hospital:'—',amount:'₹3,450',date:'18 Apr',status:'Submitted'},
+  {id:'CLM-2024-0886',patient:'Priya S.',type:'Surgery',hospital:'Manipal Hospital',amount:'₹1,85,000',date:'17 Apr',status:'Approved'},
+  {id:'CLM-2024-0885',patient:'Ravi T.',type:'Hospitalization',hospital:'Rainbow Hospital',amount:'₹45,200',date:'16 Apr',status:'Under review'},
+  {id:'CLM-2024-0884',patient:'Meena G.',type:'OPD',hospital:'Global Hospital',amount:'₹4,800',date:'15 Apr',status:'Approved'},
+];
+const badgeMap={Approved:'badge-green','Under review':'badge-amber',Rejected:'badge-red',Submitted:'badge-blue'};
+function renderClaims(list){
+  const tb=document.getElementById('claims-body');
+  tb.innerHTML=list.map(c=>`<tr>
+    <td style="font-family:monospace;font-size:11px;padding-left:12px">${c.id}</td>
+    <td>${c.patient}</td><td>${c.type}</td><td>${c.hospital}</td>
+    <td>${c.amount}</td><td>${c.date}</td>
+    <td><span class="badge ${badgeMap[c.status]||'badge-gray'}">${c.status}</span></td>
+    <td><button class="action-btn">View</button></td>
+  </tr>`).join('');
+}
+function filterClaims(){
+  const s=document.getElementById('search-input').value.toLowerCase();
+  const st=document.getElementById('status-filter').value;
+  const ty=document.getElementById('type-filter').value;
+  renderClaims(allClaims.filter(c=>
+    (!s||(c.id+c.patient).toLowerCase().includes(s))&&
+    (!st||c.status===st)&&
+    (!ty||c.type===ty)
+  ));
+}
+renderClaims(allClaims);
+function switchPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+</script>
+</body>
+</html>
